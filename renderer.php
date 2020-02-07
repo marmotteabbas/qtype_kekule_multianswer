@@ -80,6 +80,23 @@ class qtype_kekule_multianswer_renderer extends qtype_with_combined_feedback_ren
             {
                 $answerFieldName = $this->getAnswerFieldName($blankIndex);
                 $currentAnswer = $qa->get_last_qt_var($answerFieldName);
+                
+                /*remove arrow of answer*/
+                if (!isset($currentAnswer) && reset($question->answers)->comparemethod == 13) {
+                    $a = json_decode(reset($question->answers)->answer);
+                    $moldata = json_decode($a->molData);
+
+                    foreach ($moldata->root->children->items as $id=> $i) {
+                        if ($i->__type__ == "Kekule.Glyph.ElectronPushingArrow") {
+                            unset($moldata->root->children->items[$id]);
+                        }
+                    }
+
+                    $a->molData = json_encode($moldata);
+                    $answeWithoutArrow = json_encode($a);
+                    $currentAnswer = $answeWithoutArrow;
+                }
+
                 $answers[$blankIndex] = $currentAnswer;
                 $sPart = $this->getBlankHtml($blankIndex, $subPart, $currentAnswer, $question, $qa, $options, $correctResponse);
                 ++$blankIndex;
