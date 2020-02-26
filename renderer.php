@@ -42,22 +42,9 @@ class qtype_kekule_multianswer_renderer extends qtype_with_combined_feedback_ren
     public function formulation_and_controls(question_attempt $qa,
                                              question_display_options $options) {
 
-        //var_dump($options);
-        //die();
         $question = $qa->get_question();
-
         $response = $qa->get_last_qt_data();
-        //var_dump($qa->get_last_step());
-        //var_dump($response);
-        //var_dump($question);
-        /*
-        //$currentAnswers = $qa->get_last_qt_var('answer');
-        //var_dump($currentAnswers);
-        */
-
-        //var_dump($question);
-        //die();
-
+        
         //$inputBaseName = $qa->get_qt_field_name('answer');
         if ($options->correctness) {  // need to score the whole question first
             $question->grade_response($response);
@@ -82,19 +69,21 @@ class qtype_kekule_multianswer_renderer extends qtype_with_combined_feedback_ren
                 $currentAnswer = $qa->get_last_qt_var($answerFieldName);
                 
                 /*remove arrow of answer*/
-                if (!isset($currentAnswer) && reset($question->answers)->comparemethod == 13) {
-                    $a = json_decode(reset($question->answers)->answer);
-                    $moldata = json_decode($a->molData);
+                if (isset(reset($question->answers)->comparemethod)) {
+                    if (!isset($currentAnswer) && reset($question->answers)->comparemethod == 13) {
+                        $a = json_decode(reset($question->answers)->answer);
+                        $moldata = json_decode($a->molData);
 
-                    foreach ($moldata->root->children->items as $id=> $i) {
-                        if ($i->__type__ == "Kekule.Glyph.ElectronPushingArrow") {
-                            unset($moldata->root->children->items[$id]);
+                        foreach ($moldata->root->children->items as $id=> $i) {
+                            if ($i->__type__ == "Kekule.Glyph.ElectronPushingArrow") {
+                                unset($moldata->root->children->items[$id]);
+                            }
                         }
-                    }
 
-                    $a->molData = json_encode($moldata);
-                    $answeWithoutArrow = json_encode($a);
-                    $currentAnswer = $answeWithoutArrow;
+                        $a->molData = json_encode($moldata);
+                        $answeWithoutArrow = json_encode($a);
+                        $currentAnswer = $answeWithoutArrow;
+                    }
                 }
 
                 $answers[$blankIndex] = $currentAnswer;
@@ -115,6 +104,7 @@ class qtype_kekule_multianswer_renderer extends qtype_with_combined_feedback_ren
                 array('class' => 'validationerror'));
         }
 
+        $result = $qa->rewrite_pluginfile_urls($result, "question", "questiontext", $question->id);
         return $result;
     }
 

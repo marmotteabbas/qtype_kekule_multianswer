@@ -404,6 +404,26 @@ class qtype_kekule_multianswer_question extends question_graded_automatically_wi
         */
     }
 
+    /**
+     * Compare answer and key, returns a value from 0 to 1.
+     * 1 means key and answer are same, 0 means totally different.
+     * Intermedium value can also be returned.
+     * Descendants can override this method.
+     * @param $responseItem
+     * @param $key
+     */
+    protected function calcMatchingRatio($responseItem, $key)
+    {
+        /*
+        var_dump($answer);
+        var_dump($key);
+        */
+        if (strcmp($responseItem, $key->answer) == 0)
+            return 1;
+        else
+            return 0;
+    }
+    
     public function grade_response(array $response) {
 
         //var_dump($this->subGroups);
@@ -418,7 +438,9 @@ class qtype_kekule_multianswer_question extends question_graded_automatically_wi
         $currAnswers = array();
         for ($i = 0; $i < $this->blankCount; ++$i)
         {
-            $currAnswers[$i] = $response[$this->getAnswerFieldName($i)];
+            if (isset($response[$this->getAnswerFieldName($i)])) {
+                $currAnswers[$i] = $response[$this->getAnswerFieldName($i)];
+            }
         }
         // grade answers according to blank groups
         foreach ($this->subGroups as $key => $group)
